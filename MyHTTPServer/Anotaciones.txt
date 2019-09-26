@@ -1,0 +1,2 @@
+- Es un servidor concurrente que tiene que recibir todas las llamadas desde cualquier buscador
+- Implementa una version del protocolo HTTP reducida.
