@@ -1,5 +1,5 @@
 import java.net.*;
-
+import java.io.*;
 
 
 public class MyHTTPServer{
@@ -11,14 +11,35 @@ public class MyHTTPServer{
 
     public static final String ANSI_RESET = "\u001B[0m";
 
+    public static String ObtenerPeticion(int entrada, byte[] bytedata){
+
+        String cad = "";
+        if (entrada>0){cad=new String(bytedata,0,(entrada-1));}
+        String[] Cadenas = cad.split("\n"); 
+
+        System.out.println(Cadenas[0]);
+
+        return null;
+    }
+
     public static void OpenServer(int puerto) {
         try{
+            DataInputStream entrada=null;
+            String peticion = "";
+            int leido = 0;
+            byte bytedata[]=new byte[256]; 
+
 			ServerSocket skServidor = new ServerSocket(puerto);
 			System.out.println("Estamos escuchando en el puerto: " + puerto + ".");
 
 			for(;;){
                 Socket skCliente = skServidor.accept();
-                System.out.println("TODO BIEN");
+                entrada=new DataInputStream(skCliente.getInputStream());
+                leido=entrada.read(bytedata);
+                peticion = ObtenerPeticion(leido, bytedata);
+                System.out.println(ANSI_GREEN + "Entrada GET" + ANSI_BLACK);
+                //Sacamos lo que hemos recibido desde el cliente
+                //System.out.println("TODO BIEN");
 			   	//Thread t = new HiloServidor(skCliente, puerto);
 			    //t.start();
 			}
