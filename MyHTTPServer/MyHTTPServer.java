@@ -12,10 +12,9 @@ public class MyHTTPServer{
 
 			for(;;){
                 Socket skCliente = skServidor.accept();
-                System.out.println("Sirviendo cliente...");
                 if(Thread.activeCount () < hilos){
-                    //Thread t = new HiloServidor(skCliente, puerto);
-			        //t.start();
+                    Thread t = new Hilo(skCliente);
+			        t.start();
                 }
 			}
 		}
