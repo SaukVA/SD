@@ -64,10 +64,10 @@ public class Hilo extends Thread{
         String pagina = "";
 
         if(!partes[0].equals("GET")){
-            pagina = "error"; 
+            pagina = "/error"; 
         }
         else if (partes.length < 2 || partes[1].equals("/") || partes[1].equals("/index")){
-            pagina = "index";
+            pagina = "/index";
         }
         else{
             pagina = partes[1];
