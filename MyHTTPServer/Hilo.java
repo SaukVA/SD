@@ -13,13 +13,11 @@ public class Hilo extends Thread{
         this.ip_C = ip_C;
     }
 
-    public String leer (Socket cliente, String mensaje)
-	{
+    public String leer (Socket cliente, String mensaje){
 		try
 		{
 			InputStream aux = cliente.getInputStream();
-			DataInputStream flujo = new DataInputStream( aux );
-			mensaje = new String();
+			BufferedReader flujo = new BufferedReader(new InputStreamReader(aux));
 			mensaje = flujo.readLine();
 		}
 		catch (Exception e)
@@ -29,23 +27,20 @@ public class Hilo extends Thread{
       return mensaje;
 	}
 
-    public void escribeControler (Socket p_sk, String p_Datos)
-	{
-		try
-		{
-			OutputStream aux = p_sk.getOutputStream();
-			DataOutputStream flujo= new DataOutputStream( aux );
-			flujo.writeUTF(p_Datos);      
-		}
-		catch (Exception e)
-		{
-			System.out.println("Error: " + e.toString());
-		}
-		return;
-	}
+    public void escribe (Socket p_sk, String p_Datos){
+        try{
+            OutputStream aux = p_sk.getOutputStream();
+            PrintWriter flujo= new PrintWriter(new OutputStreamWriter(aux));
+            flujo.println(p_Datos); 
+            flujo.flush();    
+        }
+        catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return;
+    }
 
-    public String leeControler (Socket p_sk, String p_Datos)
-	{
+    public String leeControler (Socket p_sk, String p_Datos){
 		try
 		{
 			InputStream aux = p_sk.getInputStream();
@@ -58,6 +53,20 @@ public class Hilo extends Thread{
 		}
       return p_Datos;
 	}
+
+    public void escribeControler (Socket p_sk, String p_Datos){
+		try
+		{
+			OutputStream aux = p_sk.getOutputStream();
+			DataOutputStream flujo= new DataOutputStream( aux );
+			flujo.writeUTF(p_Datos);      
+		}
+		catch (Exception e)
+		{
+			System.out.println("Error: " + e.toString());
+		}
+		return;
+    }
 
      public String obtenerPagina(String Cadena){
         String [] partes = Cadena.split(" ");
@@ -76,51 +85,51 @@ public class Hilo extends Thread{
         return pagina;
     }
 
-    public void paginaError(Socket cliente){
+    public String paginaError(Socket cliente){
+            
+        String data = "";
+        data = "HTTP/1.1 405 Method Not Allowed\r\nServer: MyHTTPServer\r\nContent-Type: text/html; charset=utf-8\r\n\r\n";
+        data += addPagina("./errorController.html");
+        return data;
+    }
+
+    public String addPagina(String file){
+
+        String data = "";
+        String pagina = "";
 
         try{
-            BufferedReader br1 = new BufferedReader(new FileReader("./errorController.html"));
-            PrintWriter out = new PrintWriter(cliente.getOutputStream());
-            String data = "";
-
-            out.println("HTTP/1.1 405 Method Not Allowed");
-            out.println("Server: MyHTTPServer");
-			out.println("Content-Type: text/html; charset=utf-8");
-            out.println("");
+            FileReader fichero = new FileReader(file);
+            BufferedReader br1 = new BufferedReader(fichero);
 
             data = br1.readLine();
 	        while (data != null) {
-	           	out.println(data);
+	           	pagina += data;
 		    	data = br1.readLine();
 		    }
-            
-            out.flush();
-            out.close();
+            br1.close();
+
         }
         catch(Exception e){
-            System.out.println("Error: " + e.toString());
+            System.out.println("ERROR: " + e.toString());
         }
+        return pagina;
     }
 
-    public void ImprimirPagina (String pagina, Socket cliente, String controler, int puerto){
+    public String ImprimirPagina (String pagina, Socket cliente, String controler, int puerto){
         
-        try{
-            PrintWriter out = new PrintWriter(cliente.getOutputStream());
-            Socket skControler = new Socket(controler,puerto);
-            escribeControler(skControler,pagina);
-            pagina = "";
-            pagina = leeControler(skControler,pagina);
-            String [] data = pagina.split("\n");
+        String resul = "";
 
-            for(int i=0; i<data.length; i++){
-                out.println(data[i]);
-            }
-            out.flush();
-            out.close();
+        try{
+            Socket skControler = new Socket(controler,puerto);
+            this.escribeControler(skControler,pagina);
+            pagina = "";
+            resul = this.leeControler(skControler,pagina);
         }
         catch(Exception e){
-            this.paginaError(cliente);
+            resul = this.paginaError(cliente);
         }
+        return resul;
     }
 
     public void run(){
@@ -128,13 +137,14 @@ public class Hilo extends Thread{
         String Cadena = "";
 
         try{
-            Cadena = this.leer(this.cliente,Cadena);
-            pagina = this.obtenerPagina(Cadena);
-            if(!pagina.equals("/favicon.ico")){
-                System.out.println("Solicitud: " + pagina);                    
-                //this.paginaError(this.cliente);
-                this.ImprimirPagina(pagina,this.cliente,this.ip_C,this.puerto_C);
-            }
+            Cadena = this.leer(cliente,Cadena);
+            Cadena = this.obtenerPagina(Cadena);
+            if(!Cadena.equals("/favicon.ico")){
+                System.out.println("Solicitud: " + Cadena);
+            }               
+            //pagina = this.paginaError(cliente);
+            pagina = this.ImprimirPagina(Cadena,cliente,ip_C,puerto_C);
+            escribe(cliente, pagina);
             cliente.close();
         }
         catch(Exception e){
