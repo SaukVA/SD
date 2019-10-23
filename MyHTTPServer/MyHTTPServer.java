@@ -11,6 +11,7 @@ public class MyHTTPServer{
 			System.out.println("Estamos escuchando en el puerto: " + puerto + ".");
 
 			for(;;){
+                //Thread t = null;
                 Socket skCliente = skServidor.accept();
                 if(Thread.activeCount () < hilos){
                     Thread t = new Hilo(skCliente, ip_C, puerto_C);

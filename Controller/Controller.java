@@ -2,7 +2,9 @@ import java.io.*;
 import java.net.*;
 
 public class Controller {
-
+    String respuestaOK = "HTTP/1.1 200 OK\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    String respuestaError = "HTTP/1.1 404 Not Found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    
     public String leeSocket (Socket p_sk, String p_Datos){
 		try
 		{
@@ -39,10 +41,7 @@ public class Controller {
             BufferedReader br1 = new BufferedReader(new FileReader("./index.html"));
             String data = "";
 
-            pagina += "HTTP/1.1 200 OK\n";
-            pagina += "Server: MyHTTPServer\n";			
-            pagina += "Content-Type: text/html; charset=utf-8\n";
-            pagina += "\n";
+            pagina += respuestaOK;
 
             data = br1.readLine();
             while (data != null) {
@@ -64,10 +63,7 @@ public class Controller {
             BufferedReader br1 = new BufferedReader(new FileReader("./error.html"));
             String data = "";
 
-            pagina += "HTTP/1.1 404 Not Found\n";
-            pagina += "Server: MyHTTPServer\n";			
-            pagina += "Content-Type: text/html; charset=utf-8\n";
-            pagina += "\n";
+            pagina += respuestaError;
 
             data = br1.readLine();
             while (data != null) {
@@ -82,13 +78,178 @@ public class Controller {
         return pagina;
     }
 
-    public String generarPagina(String solicitu){
+    public String imprimirController(){
+        String pagina = "";
+
+        try{
+            BufferedReader br1 = new BufferedReader(new FileReader("./css.html"));
+            String data = "";
+
+            pagina += respuestaOK;
+
+            data = br1.readLine();
+            while (data != null) {
+                pagina += data + "\n";
+                data = br1.readLine();
+            }
+
+            pagina += "<body>\n"
+                        +"<center>\n"
+                            +"<h1>SENSORES</h1>\n"
+                            +"<ul>\n"
+                            +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n";
+
+            for(int i =0; i< 4; i++){
+                pagina += "<li><a href=\"/controladorSD/all?sonda=" + i + "\">Sensores " + i + "</a></li>";
+            }
+                        pagina += "</ul>\n"
+                        +"</center>\n"
+                    +"</body>\n"
+                    +"</html>\n";
+        }
+        catch(Exception e){
+            System.out.println("ERROR");
+            pagina = "";
+        }
+        return pagina;
+    }
+
+    public String sondaTotal(String num){
         String pagina = "";
         
-        if(solicitu.equals("/index")){
-            pagina = imprimirIndice();
+        try{
+            BufferedReader br1 = new BufferedReader(new FileReader("./css.html"));
+            String data = "";
+
+            pagina += respuestaOK;
+
+            data = br1.readLine();
+            while (data != null) {
+                pagina += data + "\n";
+                data = br1.readLine();
+            }
+
+            pagina += "<body>\n"
+                        +"<center>\n"
+                            +"<h1><u>SENSOR " + num + "</u></h1>\n"
+                            +"<ul>\n"
+                            +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n"
+                            +"<li><a  href=\"/controladorSD/volumen?sonda=" + num + "\">Volumen</a></li>\n"
+                            +"<li><a  href=\"/controladorSD/fecha?sonda=" + num + "\">Fecha</a></li>\n"
+                            +"<li><a  href=\"/controladorSD/ultimafecha?sonda=" + num + "\">Ultima modificación</a></li>\n"
+                            +"<li><a  href=\"/controladorSD/luz?sonda=" + num + "\">LED</a></li>\n"
+                            +"<li><a  href=\"/controladorSD\">Atras</a></li>\n"
+                            +"</ul>\n"
+                        +"</center>\n"
+                    +"</body>\n"
+                +"</html>\n";
         }
-        else /*if(solicitu.equals("/error"))*/{
+        catch(Exception e){
+            System.out.println("ERROR");
+            pagina = "";
+        }
+        return pagina;
+    }
+
+    public String sondaVolumenFechaUltimafechaLuz(String num, String tipo){
+        String pagina = "";
+        
+        try{
+            BufferedReader br1 = new BufferedReader(new FileReader("./css.html"));
+            String data = "";
+
+            pagina += respuestaOK;
+
+            data = br1.readLine();
+            while (data != null) {
+                pagina += data + "\n";
+                data = br1.readLine();
+            }
+
+            pagina += "<body>\n"
+                        +"<center>\n"
+                            +"<h1><u>SENSOR " + num + "</u></h1>\n"
+                            +"<h2>" + tipo + ": </h2>\n"
+                            +"<ul>\n"
+                            +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n"
+                            +"<li><a  href=\"/controladorSD\">Sensores</a></li>\n"
+                            +"</ul>\n"
+                        +"</center>\n"
+                    +"</body>\n"
+                +"</html>\n";
+        }
+        catch(Exception e){
+            System.out.println("ERROR");
+            pagina = "";
+        }
+        return pagina;
+    }
+
+    public Boolean exiteSensor (int estacion) {
+        //implementar
+        return true;
+    }
+
+    public String generarPagina(String solicitud){
+        String pagina = "";
+        try{
+            if(solicitud.equals("/index")){
+                pagina = imprimirIndice();
+            }
+            else if(solicitud.equals("/error")){
+                pagina = imprimirError();
+            }
+            else {
+                if(solicitud.equals("/controladorSD")){
+                    pagina = imprimirController();
+                }
+                else if(solicitud.startsWith("/controladorSD/all?sonda=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = sondaTotal(partes[1]);
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else if(solicitud.startsWith("/controladorSD/volumen?sonda=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1],"Volumen");
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else if(solicitud.startsWith("/controladorSD/fecha?sonda=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Fecha");
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else if(solicitud.startsWith("/controladorSD/ultimafecha?sonda=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Ultima Fecha");
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else if(solicitud.startsWith("/controladorSD/luz?sonda=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Led");
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else if(solicitud.startsWith("/controladorSD/setluz=")){
+                    String [] partes = solicitud.split("=");
+                    if(exiteSensor(Integer.parseInt(partes[1]))){
+                        pagina = imprimirIndice();
+                    }
+                    else{ pagina = imprimirError(); }
+                }
+                else{
+                    pagina = imprimirError();
+                }
+            }
+        }catch(Exception e){
             pagina = imprimirError();
         }
         return pagina;
