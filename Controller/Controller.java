@@ -213,14 +213,16 @@ public class Controller {
 
         String cadena = "";
         String pagina = "";
+        String ip_Reg = "";
         
         try{
             Controller cont = new Controller();
-             if (args.length < 1) {
-                System.out.println("ERROR: ./Controller [puerto_Controller]");
+             if (args.length < 2) {
+                System.out.println("ERROR: ./Controller [puerto_Controller] [ip_registrador]");
                 System.exit(1);
             }
             ServerSocket skController = new ServerSocket(Integer.parseInt(args[0]));
+            ip_Reg = args[1];
             System.out.println("CONTROLLER ENCENDIDO");
             System.out.println("Escucho el puerto " + args[0]);
 

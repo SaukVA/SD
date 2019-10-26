@@ -1,0 +1,9 @@
+Comandos para registrar una sonda:
+
+- unset CLASSPATH
+
+
+Comandos para el registrador:
+
+- unset CLASSPATH
+-
