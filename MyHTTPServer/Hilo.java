@@ -85,14 +85,6 @@ public class Hilo extends Thread{
         return pagina;
     }
 
-    public String paginaError(Socket cliente){
-            
-        String data = "";
-        data = "HTTP/1.1 405 Method Not Allowed\r\nServer: MyHTTPServer\r\nContent-Type: text/html; charset=utf-8\r\n\r\n";
-        data += addPagina("./errorController.html");
-        return data;
-    }
-
     public String addPagina(String file){
 
         String data = "";
@@ -121,13 +113,24 @@ public class Hilo extends Thread{
         String resul = "";
 
         try{
-            Socket skControler = new Socket(controler,puerto);
-            this.escribeControler(skControler,pagina);
-            pagina = "";
-            resul = this.leeControler(skControler,pagina);
+            if(pagina == "/index"){
+                resul = "HTTP/1.1 200 OK\r\nServer: MyHTTPServer\r\nContent-Type: text/html; charset=utf-8\r\n\r\n";
+                resul += addPagina("./index.html");
+            }
+            else if(pagina == "/error"){
+                resul = "HTTP/1.1 405 Metod not found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+                resul += addPagina("./errorGET.html");
+            }
+            else{
+                Socket skControler = new Socket(controler,puerto);
+                this.escribeControler(skControler,pagina);
+                pagina = "";
+                resul = this.leeControler(skControler,pagina);
+            }
         }
         catch(Exception e){
-            resul = this.paginaError(cliente);
+            resul = "HTTP/1.1 409 Conflict\r\nServer: MyHTTPServer\r\nContent-Type: text/html; charset=utf-8\r\n\r\n";
+            resul += addPagina("./errorController.html");
         }
         return resul;
     }

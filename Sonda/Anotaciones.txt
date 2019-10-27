@@ -1,9 +1,12 @@
 Comandos para registrar una sonda:
 
 - unset CLASSPATH
+- java -cp . -Djava.rmi.server.hostname=<MiIP> Sonda <IPRegistrador> <NumeroDeSonda>
 
 
 Comandos para el registrador:
 
-- unset CLASSPATH
--
+- T1: unset CLASSPATH
+- T1: rmiregistry  -J-Djava.security.policy=registrar.policy
+- T2: unset CLASSPATH
+- T2: java -cp . -Djava.rmi.server.hostname=<IpRegistrador> Registrador

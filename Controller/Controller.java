@@ -3,6 +3,7 @@ import java.net.*;
 
 public class Controller {
     String respuestaOK = "HTTP/1.1 200 OK\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    String respuestaErrorGET = "HTTP/1.1 405 Metod not found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
     String respuestaError = "HTTP/1.1 404 Not Found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
     
     public String leeSocket (Socket p_sk, String p_Datos){
@@ -128,82 +129,72 @@ public class Controller {
     public String generarPagina(String solicitud){
         String pagina = "";
         try{
-            if(solicitud.equals("/index")){
-                pagina += respuestaOK;
-                pagina += addPagina("./index.html");
+            if(solicitud.equals("/controladorSD")){
+                pagina = imprimirController();
             }
-            else if(solicitud.equals("/error")){
-                pagina += respuestaError;
+            else if(solicitud.startsWith("/controladorSD/all?sonda=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    pagina = sondaTotal(partes[1]);
+                }
+                else{ 
+                    pagina += respuestaError;
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else if(solicitud.startsWith("/controladorSD/volumen?sonda=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1],"Volumen");
+                }
+                else{ 
+                    pagina += respuestaError;
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else if(solicitud.startsWith("/controladorSD/fecha?sonda=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Fecha");
+                }
+                else{ 
+                    pagina += respuestaError;
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else if(solicitud.startsWith("/controladorSD/ultimafecha?sonda=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Ultima Fecha");
+                }
+                else{ 
+                    pagina += respuestaError;             
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else if(solicitud.startsWith("/controladorSD/luz?sonda=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Led");
+                }
+                else{ 
+                    pagina += respuestaError;             
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else if(solicitud.startsWith("/controladorSD/setluz=")){
+                String [] partes = solicitud.split("=");
+                if(exiteSensor(Integer.parseInt(partes[1]))){
+                    //pagina = imprimirIndice();
+                }
+                else{ 
+                    pagina += respuestaError;             
+                    pagina += addPagina("./error.html"); 
+                }
+            }
+            else{
+                pagina += respuestaError;            
                 pagina += addPagina("./error.html");
-            }
-            else {
-                if(solicitud.equals("/controladorSD")){
-                    pagina = imprimirController();
-                }
-                else if(solicitud.startsWith("/controladorSD/all?sonda=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        pagina = sondaTotal(partes[1]);
-                    }
-                    else{ 
-                        pagina += respuestaError;
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else if(solicitud.startsWith("/controladorSD/volumen?sonda=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1],"Volumen");
-                    }
-                    else{ 
-                        pagina += respuestaError;
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else if(solicitud.startsWith("/controladorSD/fecha?sonda=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Fecha");
-                    }
-                    else{ 
-                        pagina += respuestaError;
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else if(solicitud.startsWith("/controladorSD/ultimafecha?sonda=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Ultima Fecha");
-                    }
-                    else{ 
-                        pagina += respuestaError;             
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else if(solicitud.startsWith("/controladorSD/luz?sonda=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Led");
-                    }
-                    else{ 
-                        pagina += respuestaError;             
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else if(solicitud.startsWith("/controladorSD/setluz=")){
-                    String [] partes = solicitud.split("=");
-                    if(exiteSensor(Integer.parseInt(partes[1]))){
-                        //pagina = imprimirIndice();
-                    }
-                    else{ 
-                        pagina += respuestaError;             
-                        pagina += addPagina("./error.html"); 
-                    }
-                }
-                else{
-                    pagina += respuestaError;            
-                    pagina += addPagina("./error.html");
-                }
             }
         }catch(Exception e){
             pagina += respuestaError;             
