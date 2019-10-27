@@ -106,8 +106,11 @@ public class Controller {
         pagina += "<body>\n"
                     +"<center>\n"
                         +"<h1><u>SENSOR " + num + "</u></h1>\n"
-                        +"<h2>" + tipo + ": </h2>\n"
-                        +"<ul>\n"
+                        +"<h2>" + tipo + ": </h2>\n";
+                        if(tipo == "Led"){
+                            pagina += "<div class=\"circulo\" style=\"background: green;\" ></div>\n<h2> </h2>\n";
+                        }
+                        pagina += "<ul>\n"
                         +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n"
                         +"<li><a  href=\"/controladorSD\">Sensores</a></li>\n"
                         +"</ul>\n"

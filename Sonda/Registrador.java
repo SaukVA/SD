@@ -6,7 +6,7 @@ import java.rmi.server.*;
 import java.rmi.registry.LocateRegistry;
 import java.io.*;
 
-public class Registrador extends UnicastRemoteObject{
+public class Registrador extends UnicastRemoteObject implements IRegistrador{
     public Registry registry;
 
 	public Registrador(Registry r) throws RemoteException {
