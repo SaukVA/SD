@@ -75,18 +75,24 @@ public class Sonda extends UnicastRemoteObject implements ISonda,  Serializable{
 
     public void setVolumen(int v){
         if(v>=0 && v<=100){this.vol = v;}
-        else{ this.vol = 90;}
+        else if(v < 0){ this.vol = 0;}
+        else if(v > 100){ this.vol = 100;}
         ColocarDatos();
     }
 
     public void setLuz(int l){
         if(l>=0 && l<=65535){this.luz = l;}
-        else{ this.luz = 0;}
+        else if(l < 0){ this.luz = 0;}
+        else if(l > 65535){ this.luz = 65535;}
         ColocarDatos();
     }
 
     public void setUltimaFecha(String f){
-        try{ulFecha = f;}
+        try{
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            LocalDateTime dateTime = LocalDateTime.parse(f, formatter);
+            ulFecha = f;
+        }
         catch(Exception e){ ulFecha = LocalDateTime.now().format(format); }
         ColocarDatos();
     }
@@ -94,7 +100,7 @@ public class Sonda extends UnicastRemoteObject implements ISonda,  Serializable{
     public int getVolumen (){
         try{RecogerDatos();}
         catch(Exception ex){
-			System.out.println("No se ha podido leer desde la pantalla el fichero: "+ex);
+			System.out.println("No se ha podido leer el volumen del fichero: "+ex);
 		}   
         return vol;
     }
@@ -102,7 +108,7 @@ public class Sonda extends UnicastRemoteObject implements ISonda,  Serializable{
     public int getLuz(){
         try{RecogerDatos();}
         catch(Exception ex){
-			System.out.println("No se ha podido leer desde la pantalla el fichero: "+ex);
+			System.out.println("No se ha podido leer la luz el fichero: "+ex);
 		}   
         return luz;
     }
@@ -110,7 +116,7 @@ public class Sonda extends UnicastRemoteObject implements ISonda,  Serializable{
     public String getUltimaFecha (){
         try{RecogerDatos();}
         catch(Exception ex){
-			System.out.println("No se ha podido leer desde la pantalla el fichero: "+ex);
+			System.out.println("No se ha podido leer la ultima fecha del fichero: "+ex);
 		}   
         return ulFecha;
     }

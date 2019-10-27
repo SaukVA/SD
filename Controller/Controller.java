@@ -1,10 +1,14 @@
 import java.io.*;
 import java.net.*;
+import java.rmi.*;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
 
 public class Controller {
-    String respuestaOK = "HTTP/1.1 200 OK\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
-    String respuestaErrorGET = "HTTP/1.1 405 Metod not found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
-    String respuestaError = "HTTP/1.1 404 Not Found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    private String respuestaOK = "HTTP/1.1 200 OK\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    private String respuestaErrorGET = "HTTP/1.1 405 Metod not found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    private String respuestaError = "HTTP/1.1 404 Not Found\nServer: MyHTTPServer\nContent-Type: text/html; charset=utf-8\n\n";
+    private static String ip_registrador;
     
     public String leeSocket (Socket p_sk, String p_Datos){
 		try
@@ -67,14 +71,29 @@ public class Controller {
                         +"<h1>SENSORES</h1>\n"
                         +"<ul>\n"
                         +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n";
-
-        for(int i =0; i< 4; i++){
-            pagina += "<li><a href=\"/controladorSD/all?sonda=" + i + "\">Sensores " + i + "</a></li>";
-        }
-                    pagina += "</ul>\n"
-                    +"</center>\n"
-                +"</body>\n"
-                +"</html>\n";
+                    try{
+                        final Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
+                        final String[] NombresDondas = registry.list();
+                        for(String sonda : NombresDondas) {
+                            try{
+                                Object obj = registry.lookup(sonda);
+                                if(obj instanceof ISonda){
+                                    final ISonda server = (ISonda)obj;
+                                    pagina += "<li><a href=\"/controladorSD/all?sonda=" + server.getId() + "\">Sonda " + server.getId() + "</a></li>\n";
+                                }
+                            }catch(Exception e){}
+                        }
+                        pagina += "</ul>\n";
+                    }
+                    catch(Exception e){
+                        pagina += "<li><a  href=\"/controladorSD\">Recargar</a></li>\n"
+                            + "</ul>\n"
+                            + "<h4>No se ha podido conectar con las Sondas</h4>\n";
+                    }
+                        
+                        pagina +="</center>\n"
+                    +"</body>\n"
+                    +"</html>\n";
         return pagina;
     }
 
@@ -100,19 +119,27 @@ public class Controller {
         return pagina;
     }
 
-    public String sondaVolumenFechaUltimafechaLuz(String num, String tipo){
+    public String sondaVolumenFechaUltimafechaLuz(ISonda s, String tipo) throws Exception{
         String pagina = "";
         pagina += respuestaOK;
         pagina += addPagina("./css.html");
         pagina += "<body>\n"
                     +"<center>\n"
-                        +"<h1><u>SENSOR " + num + "</u></h1>\n"
-                        +"<h2>" + tipo + ": </h2>\n";
-                        if(tipo == "Led"){
-                            pagina += "<div class=\"circulo\" style=\"background: green;\" ></div>\n<h2> </h2>\n";
+                        +"<h1><u>SENSOR " + s.getId() + "</u></h1>\n"
+                        +"<h2>" + tipo + ": ";
+                        if(tipo == "Volumen"){pagina += s.getVolumen() +"</h2>\n";}
+                        else if(tipo == "Fecha"){pagina += s.getFecha() +"</h2>\n";}
+                        else if(tipo == "Ultima Fecha"){pagina += s.getUltimaFecha() +"</h2>\n";}
+                        else if(tipo == "Volumen"){pagina += s.getVolumen() +"</h2>\n";}
+                        else if(tipo == "Led"){
+                            String color = "green";
+                            if(s.getLuz() > 32768){color = "red";}
+                            pagina += s.getLuz() + "</h2>\n"
+                                   + "<div class=\"circulo\" style=\"background: " + color + ";\" ></div>\n<h2> </h2>\n";
                         }
                         pagina += "<ul>\n"
                         +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n"
+                        +"<li><a  href=\"/controladorSD/all?sonda=" + s.getId() + "\">Atras</a></li>\n"
                         +"<li><a  href=\"/controladorSD\">Sensores</a></li>\n"
                         +"</ul>\n"
                     +"</center>\n"
@@ -121,20 +148,35 @@ public class Controller {
         return pagina;
     }
 
-    public Boolean exiteSensor (int estacion) {
-        //implementar
-        return true;
-    }
+    public ISonda exiteSensor(int s) throws Exception{
+		ISonda res = null;
+		final Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
+		final String[] NombresDondas = registry.list();
+
+		for(String sonda : NombresDondas) {
+			Object obj = registry.lookup(sonda);
+			if(obj instanceof ISonda){
+				final ISonda server = (ISonda)obj;
+				if(server.getId() == s){
+					res = server;
+				}
+			}
+		}
+		return res;
+	}
+
 
     public String generarPagina(String solicitud){
         String pagina = "";
+        ISonda s = null;
         try{
             if(solicitud.equals("/controladorSD")){
                 pagina = imprimirController();
             }
             else if(solicitud.startsWith("/controladorSD/all?sonda=")){
                 String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
                     pagina = sondaTotal(partes[1]);
                 }
                 else{ 
@@ -144,8 +186,9 @@ public class Controller {
             }
             else if(solicitud.startsWith("/controladorSD/volumen?sonda=")){
                 String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
-                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1],"Volumen");
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
+                    pagina = sondaVolumenFechaUltimafechaLuz(s,"Volumen");
                 }
                 else{ 
                     pagina += respuestaError;
@@ -154,8 +197,9 @@ public class Controller {
             }
             else if(solicitud.startsWith("/controladorSD/fecha?sonda=")){
                 String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
-                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Fecha");
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
+                    pagina = sondaVolumenFechaUltimafechaLuz(s, "Fecha");
                 }
                 else{ 
                     pagina += respuestaError;
@@ -164,8 +208,9 @@ public class Controller {
             }
             else if(solicitud.startsWith("/controladorSD/ultimafecha?sonda=")){
                 String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
-                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Ultima Fecha");
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
+                    pagina = sondaVolumenFechaUltimafechaLuz(s, "Ultima Fecha");
                 }
                 else{ 
                     pagina += respuestaError;             
@@ -174,8 +219,9 @@ public class Controller {
             }
             else if(solicitud.startsWith("/controladorSD/luz?sonda=")){
                 String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
-                    pagina = sondaVolumenFechaUltimafechaLuz(partes[1], "Led");
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
+                    pagina = sondaVolumenFechaUltimafechaLuz(s, "Led");
                 }
                 else{ 
                     pagina += respuestaError;             
@@ -183,9 +229,14 @@ public class Controller {
                 }
             }
             else if(solicitud.startsWith("/controladorSD/setluz=")){
-                String [] partes = solicitud.split("=");
-                if(exiteSensor(Integer.parseInt(partes[1]))){
-                    //pagina = imprimirIndice();
+                String n = solicitud.substring(22,solicitud.length());
+                n = n.replace("?sonda","");
+                String [] partes = n.split("=");
+                s = exiteSensor(Integer.parseInt(partes[1]));
+                if(s != null){
+                    s.setLuz(Integer.parseInt(partes[0]));
+                    s.setUltimaFecha(s.getFecha());
+                    pagina = sondaVolumenFechaUltimafechaLuz(s, "Led");
                 }
                 else{ 
                     pagina += respuestaError;             
@@ -207,7 +258,6 @@ public class Controller {
 
         String cadena = "";
         String pagina = "";
-        String ip_Reg = "";
         
         try{
             Controller cont = new Controller();
@@ -216,7 +266,7 @@ public class Controller {
                 System.exit(1);
             }
             ServerSocket skController = new ServerSocket(Integer.parseInt(args[0]));
-            ip_Reg = args[1];
+            ip_registrador = args[1];
             System.out.println("CONTROLLER ENCENDIDO");
             System.out.println("Escucho el puerto " + args[0]);
 

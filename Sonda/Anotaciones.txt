@@ -7,6 +7,6 @@ Comandos para registrar una sonda:
 Comandos para el registrador:
 
 - T1: unset CLASSPATH
-- T1: rmiregistry  -J-Djava.security.policy=registrar.policy
+- T1: rmiregistry  -J-Djava.security.policy=registrar.policyu
 - T2: unset CLASSPATH
 - T2: java -cp . -Djava.rmi.server.hostname=<IpRegistrador> Registrador
