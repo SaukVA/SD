@@ -72,13 +72,13 @@ public class Controller {
                         +"<ul>\n"
                         +"<li><a class=\"active\" href=\"/index\">Inicio</a></li>\n";
                     try{
-                        final Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
-                        final String[] NombresDondas = registry.list();
+                        Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
+                        String[] NombresDondas = registry.list();
                         for(String sonda : NombresDondas) {
                             try{
                                 Object obj = registry.lookup(sonda);
                                 if(obj instanceof ISonda){
-                                    final ISonda server = (ISonda)obj;
+                                    ISonda server = (ISonda)obj;
                                     pagina += "<li><a href=\"/controladorSD/all?sonda=" + server.getId() + "\">Sonda " + server.getId() + "</a></li>\n";
                                 }
                             }catch(Exception e){}
@@ -150,17 +150,18 @@ public class Controller {
 
     public ISonda exiteSensor(int s) throws Exception{
 		ISonda res = null;
-		final Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
-		final String[] NombresDondas = registry.list();
-
-		for(String sonda : NombresDondas) {
+		Registry registry = LocateRegistry.getRegistry(ip_registrador,Registry.REGISTRY_PORT);
+                String[] NombresDondas = registry.list();
+                for(String sonda : NombresDondas) {
+			try{	
 			Object obj = registry.lookup(sonda);
-			if(obj instanceof ISonda){
-				final ISonda server = (ISonda)obj;
-				if(server.getId() == s){
+                        if(obj instanceof ISonda){
+              	            ISonda server = (ISonda)obj;
+                            if(server.getId() == s){
 					res = server;
 				}
-			}
+                        }
+			}catch(Exception e){}
 		}
 		return res;
 	}
